@@ -2,66 +2,53 @@ const crypto = require("crypto");
 
 const Audit = require("../models/Audit");
 
+const asyncHandler = require("../utils/asyncHandler");
+
 const {
   generateAudit,
 } = require("../services/auditEngine.service");
 
-const createAudit = async (req, res) => {
-  try {
-    const { tools } = req.body;
+const createAudit = asyncHandler(async (req, res) => {
+  const { tools } = req.body;
 
-    if (!tools || !Array.isArray(tools) || tools.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Tools data is required",
-      });
-    }
+  const auditResult = generateAudit(tools);
 
-    // Generate audit recommendations
-    const auditResult = generateAudit(tools);
+  const publicShareId = crypto
+    .randomBytes(8)
+    .toString("hex");
 
-    // Create unique public share ID
-    const publicShareId = crypto.randomBytes(8).toString("hex");
+  const audit = await Audit.create({
+    tools,
 
-    // Save audit
-    const audit = await Audit.create({
-      tools,
+    recommendations:
+      auditResult.recommendations,
 
-      recommendations: auditResult.recommendations,
+    totalMonthlySpend:
+      auditResult.totalMonthlySpend,
 
-      totalMonthlySpend: auditResult.totalMonthlySpend,
+    totalMonthlySavings:
+      auditResult.totalMonthlySavings,
 
-      totalMonthlySavings:
-        auditResult.totalMonthlySavings,
+    totalAnnualSavings:
+      auditResult.totalAnnualSavings,
 
-      totalAnnualSavings:
-        auditResult.totalAnnualSavings,
+    isHighSavingsLead:
+      auditResult.isHighSavingsLead,
 
-      isHighSavingsLead:
-        auditResult.isHighSavingsLead,
+    publicShareId,
+  });
 
-      publicShareId,
-    });
+  res.status(201).json({
+    success: true,
 
-    res.status(201).json({
-      success: true,
+    message: "Audit generated successfully",
 
-      message: "Audit generated successfully",
+    data: audit,
+  });
+});
 
-      data: audit,
-    });
-  } catch (error) {
-    console.error("Create Audit Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to generate audit",
-    });
-  }
-};
-
-const getPublicAudit = async (req, res) => {
-  try {
+const getPublicAudit = asyncHandler(
+  async (req, res) => {
     const { shareId } = req.params;
 
     const audit = await Audit.findOne({
@@ -69,25 +56,19 @@ const getPublicAudit = async (req, res) => {
     });
 
     if (!audit) {
-      return res.status(404).json({
-        success: false,
-        message: "Audit not found",
-      });
+      const error = new Error("Audit not found");
+
+      error.statusCode = 404;
+
+      throw error;
     }
 
     res.status(200).json({
       success: true,
       data: audit,
     });
-  } catch (error) {
-    console.error("Get Audit Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch audit",
-    });
   }
-};
+);
 
 module.exports = {
   createAudit,
