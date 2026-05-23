@@ -7,6 +7,7 @@ const connectDB = require("./config/db");
 const errorHandler = require("./middleware/error.middleware");
 const auditRoutes = require("./routes/audit.routes");
 const leadRoutes = require("./routes/lead.routes");
+const apiLimiter = require("./middleware/rateLimiter.middleware");
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+app.use(apiLimiter);
 
 
 app.get("/api/health", (req, res) => {
