@@ -75,7 +75,9 @@ const getPublicAudit = asyncHandler(
     });
 
     if (!audit) {
-      const error = new Error("Audit not found");
+      const error = new Error(
+        "Audit not found"
+      );
 
       error.statusCode = 404;
 
@@ -84,7 +86,29 @@ const getPublicAudit = asyncHandler(
 
     res.status(200).json({
       success: true,
-      data: audit,
+
+      data: {
+        recommendations:
+          audit.recommendations,
+
+        totalMonthlySpend:
+          audit.totalMonthlySpend,
+
+        totalMonthlySavings:
+          audit.totalMonthlySavings,
+
+        totalAnnualSavings:
+          audit.totalAnnualSavings,
+
+        aiSummary:
+          audit.aiSummary,
+
+        publicShareId:
+          audit.publicShareId,
+
+        createdAt:
+          audit.createdAt,
+      },
     });
   }
 );

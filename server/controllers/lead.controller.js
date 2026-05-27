@@ -4,6 +4,10 @@ const Audit = require("../models/Audit");
 
 const asyncHandler = require("../utils/asyncHandler");
 
+const {
+  sendAuditConfirmationEmail,
+} = require("../services/email.service");
+
 const createLead = asyncHandler(
   async (req, res) => {
     const {
@@ -49,6 +53,20 @@ const createLead = asyncHandler(
       role,
       teamSize,
       auditId,
+    });
+
+    // Send confirmation email
+    await sendAuditConfirmationEmail({
+      email,
+
+      totalMonthlySavings:
+        auditExists.totalMonthlySavings,
+
+      totalAnnualSavings:
+        auditExists.totalAnnualSavings,
+
+      isHighSavingsLead:
+        auditExists.isHighSavingsLead,
     });
 
     res.status(201).json({

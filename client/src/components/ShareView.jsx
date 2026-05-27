@@ -26,7 +26,7 @@ const ShareView = () => {
     const loadSharedAudit = async () => {
       try {
         const data = await API.audit.getSharedAudit(id);
-        setAudit(data);
+        setAudit(data.data);
       } catch (err) {
         setError(err.message || 'Failed to load shared audit');
       } finally {
@@ -76,7 +76,7 @@ const ShareView = () => {
               Shared Audit Results
             </Typography>
             <Typography variant="h5">
-              Potential savings: ${audit?.summary?.monthlySavings || 0}/month
+              Potential savings: ${audit?.totalMonthlySavings|| 0}/month
             </Typography>
             <Button
               href="/audit"
@@ -103,7 +103,7 @@ const ShareView = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6">{rec.toolName}</Typography>
-                  <Chip label={rec.action} size="small" color="success" sx={{ my: 1 }} />
+                  <Chip label={`Switch to ${rec.recommendedPlan}`} size="small" color="success" sx={{ my: 1 }} />
                   <Typography variant="body2" color="text.secondary">
                     {rec.reason}
                   </Typography>

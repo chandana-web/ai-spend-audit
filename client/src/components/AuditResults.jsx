@@ -39,6 +39,7 @@ const AuditResults = ({ result, onShare }) => {
   const [capturing, setCapturing] = useState(false);
   const [shared, setShared] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [website, setWebsite] = useState('');
 
   if (!result) {
     return (
@@ -65,38 +66,55 @@ const AuditResults = ({ result, onShare }) => {
   const isHighSavings = result.isHighSavingsLead || false;
 
   const handleCaptureLead = async () => {
-    if (!email) {
-      toast.error('Please enter your email');
-      return;
-    }
+  const emailRegex =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    setCapturing(true);
-    const loadingToast = toast.loading('Sending report to your email...');
-    
-    try {
-      await API.lead.captureLead({
-        email,
-        companyName: company,
-        role,
-        auditId: result._id,
-        teamSize: result.teamSize,
-      });
-      
-      toast.dismiss(loadingToast);
-      toast.success('Report sent to your email! Check your inbox.');
-      setEmailDialogOpen(false);
-      
-      // Reset form
-      setEmail('');
-      setCompany('');
-      setRole('');
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error(error.message || 'Failed to send report. Please try again.');
-    } finally {
-      setCapturing(false);
-    }
-  };
+  if (!emailRegex.test(email)) {
+    toast.error('Please enter a valid email');
+    return;
+  }
+
+  // Honeypot spam protection
+  if (website) {
+    return;
+  }
+
+  setCapturing(true);
+
+  const loadingToast = toast.loading(
+    'Sending report to your email...'
+  );
+
+  try {
+    await API.lead.captureLead({
+      email,
+      companyName: company,
+      role,
+      auditId: result._id,
+    });
+
+    toast.dismiss(loadingToast);
+
+    toast.success(
+      'Report sent to your email!'
+    );
+
+    setEmailDialogOpen(false);
+
+    setEmail('');
+    setCompany('');
+    setRole('');
+  } catch (error) {
+    toast.dismiss(loadingToast);
+
+    toast.error(
+      error.message ||
+        'Failed to send report.'
+    );
+  } finally {
+    setCapturing(false);
+  }
+};
 
   const handleShare = async () => {
     if (shared) return;
@@ -349,6 +367,11 @@ const AuditResults = ({ result, onShare }) => {
               value={role}
               onChange={(e) => setRole(e.target.value)}
             />
+            <TextField
+  sx={{ display: 'none' }}
+  value={website}
+  onChange={(e) => setWebsite(e.target.value)}
+/>
             <Alert severity="info">
               We'll never share your email. Unsubscribe at any time.
             </Alert>
