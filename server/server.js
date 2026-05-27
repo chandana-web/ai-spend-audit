@@ -17,7 +17,9 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: "https://ai-spend-audit-theta-sable.vercel.app",
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json());
 app.use(apiLimiter);
