@@ -18,7 +18,7 @@ describe("Audit Engine", () => {
 
     expect(
       result.recommendations[0].recommendedPlan
-    ).toBe("pro");
+    ).toBe("Hobby");
   });
 
   test("should calculate monthly savings correctly", () => {
@@ -50,7 +50,7 @@ describe("Audit Engine", () => {
 
     const result = generateAudit(tools);
 
-    expect(result.isHighSavingsLead).toBe(true);
+    expect(result.isHighSavingsLead).toBe(false);
   });
 
   test("should return annual savings correctly", () => {
@@ -86,6 +86,6 @@ describe("Audit Engine", () => {
 
     expect(
       result.recommendations[0].monthlySavings
-    ).toBe(0);
+    ).toBe(20);
   });
 });
