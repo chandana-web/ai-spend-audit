@@ -8,7 +8,7 @@ Frontend:
 https://ai-spend-audit-theta-sable.vercel.app
 
 Backend:
-https://YOUR-RENDER-URL.onrender.com
+https://ai-spend-audit-m5pp.onrender.com
 
 ---
 
@@ -96,12 +96,22 @@ Public routes exclude identifying user information while preserving recommendati
 ## Demo
 
 Loom Video:
-https://loom.com/your-demo-link
+https://drive.google.com/file/d/1ksZyJsps8eVBIVdttr-4Nd6eW1CKNzz5/view?usp=sharing
 
 Screenshots:
-- Landing page
-- Audit results
+- Landing page:
+![landingPage](screenshots/landingPage1.png)
+![landingPage](screenshots/landingPage2.png)
+![landingPage](screenshots/landingPage3.png)
+![landingPage](screenshots/landingPage4.png)
+![landingPage](screenshots/landingPage5.png)
+- Audit results:
+![resultPage](screenshots/resultPage1.png)
+![resultPage](screenshots/resultPage2.png)
+![resultPage](screenshots/resultPage3.png)
 - Share page
+![resultPage](screenshots/sharePage1.png)
+![resultPage](screenshots/sharePage2.png)
 
 ---
 
