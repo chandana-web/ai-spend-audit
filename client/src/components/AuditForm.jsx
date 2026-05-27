@@ -38,7 +38,7 @@ const availableTools = [
   { name: 'Windsurf', plans: ['Free', 'Pro', 'Enterprise'] },
 ];
 
-const useCases = ['coding', 'writing', 'data analysis', 'research', 'mixed'];
+const useCases = ['coding', 'writing', 'data', 'research', 'mixed'];
 
 
 
@@ -255,6 +255,7 @@ const AuditForm = ({ onAuditComplete }) => {
                       <FormControl fullWidth>
                         <InputLabel>Primary Use Case</InputLabel>
                         <Select
+                          sx={{paddingRight:5}}
                           value={formData.useCase}
                           onChange={(e) => setFormData({ ...formData, useCase: e.target.value })}
                           label="Primary Use Case"
@@ -301,14 +302,16 @@ const AuditForm = ({ onAuditComplete }) => {
                   </Typography>
                   
                   <Box sx={{ mb: 4, p: 3, background: 'rgba(99, 102, 241, 0.05)', borderRadius: 3 }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={3}>
-                        <FormControl fullWidth>
-                          <InputLabel>Tool</InputLabel>
+                    <Grid container spacing={2} >
+                      <Grid item xs={12} md={3} >
+                        <FormControl  fullWidth >
+                          <InputLabel >Tool</InputLabel>
                           <Select
+                          sx={{paddingRight:5}}
                             value={selectedTool}
                             onChange={(e) => setSelectedTool(e.target.value)}
                             label="Tool"
+                            
                           >
                             {availableTools.map((tool) => (
                               <MenuItem key={tool.name} value={tool.name}>{tool.name}</MenuItem>
@@ -320,6 +323,7 @@ const AuditForm = ({ onAuditComplete }) => {
                         <FormControl fullWidth>
                           <InputLabel>Plan</InputLabel>
                           <Select
+                           sx={{paddingRight:5}}
                             value={selectedPlan}
                             onChange={(e) => setSelectedPlan(e.target.value)}
                             label="Plan"
@@ -347,6 +351,7 @@ const AuditForm = ({ onAuditComplete }) => {
   <InputLabel>Seats</InputLabel>
 
   <Select
+    sx={{paddingRight:5}}
     value={seats}
     onChange={(e) => setSeats(Number(e.target.value))}
     label="Seats"
