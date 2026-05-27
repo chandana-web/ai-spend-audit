@@ -36,61 +36,39 @@ apiClient.interceptors.response.use(
 
 // Audit API endpoints
 export const auditAPI = {
-  // Calculate audit based on user inputs
-  calculateAudit: (data) => apiClient.post('/audit/calculate', data),
+  // Create audit based on user inputs
+  // Required data: { tools: [...], teamSize, useCase }
+  createAudit: (data) => apiClient.post('/audit', data),
+  
+  // Calculate audit (alias for createAudit for consistency)
+  calculateAudit: (data) => apiClient.post('/audit', data),
   
   // Get audit by share ID (for public share links)
-  getSharedAudit: (shareId) => apiClient.get(`/audit/share/${shareId}`),
+  // Returns publicly shared audit data
+  getSharedAudit: (shareId) => apiClient.get(`/audit/${shareId}`),
   
-  // Generate shareable link for audit results
-  createShareLink: (auditData) => apiClient.post('/audit/share', auditData),
-  
-  // Get pricing data for all tools
-  getPricingData: () => apiClient.get('/audit/pricing'),
-  
-  // Get alternative tool suggestions
-  getAlternatives: (toolName, useCase) => apiClient.get('/audit/alternatives', {
-    params: { toolName, useCase }
-  }),
-};
-
-// Lead capture API endpoints
-export const leadAPI = {
-  // Capture lead with email
-  captureLead: (data) => apiClient.post('/leads/capture', data),
-  
-  // Send audit report to email
-  sendReport: (data) => apiClient.post('/leads/send-report', data),
-  
-  // Subscribe to notifications
-  subscribe: (data) => apiClient.post('/leads/subscribe', data),
-  
-  // Verify email (for double opt-in)
-  verifyEmail: (token) => apiClient.get(`/leads/verify/${token}`),
-  
-  // Unsubscribe from notifications
-  unsubscribe: (email) => apiClient.delete('/leads/unsubscribe', { data: { email } }),
+  // Get pricing data for tools
+  getPricingData: () => apiClient.get('/audit/pricing/data'),
 };
 
 // AI Summary API endpoints
 export const aiAPI = {
   // Generate AI summary for audit results
-  generateSummary: (auditData) => apiClient.post('/ai/summary', auditData),
-  
-  // Get personalized recommendations
-  getRecommendations: (auditData) => apiClient.post('/ai/recommendations', auditData),
-  
-  // Generate benchmark comparison
-  getBenchmark: (teamSize, useCase) => apiClient.get('/ai/benchmark', {
-    params: { teamSize, useCase }
-  }),
+  generateSummary: (data) => apiClient.post('/ai/summary', data),
+};
+
+// Lead capture API endpoints
+export const leadAPI = {
+  // Capture lead with email and audit details
+  // Required data: { email, companyName, role, teamSize, auditResult }
+  captureLead: (data) => apiClient.post('/leads', data),
 };
 
 // Export all APIs as a single object for convenience
 const API = {
   audit: auditAPI,
-  lead: leadAPI,
   ai: aiAPI,
+  lead: leadAPI,
 };
 
 export default API;

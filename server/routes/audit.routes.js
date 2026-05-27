@@ -5,6 +5,7 @@ const router = express.Router();
 const {
   createAudit,
   getPublicAudit,
+  getPricingData,
 } = require("../controllers/audit.controller");
 
 const validate = require("../middleware/validate.middleware");
@@ -18,6 +19,8 @@ router.post(
   validate(auditSchema),
   createAudit
 );
+
+router.get("/pricing/data", getPricingData);
 
 router.get("/:shareId", getPublicAudit);
 

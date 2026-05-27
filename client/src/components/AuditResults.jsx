@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import {
   Container,
   Box,
@@ -51,6 +51,19 @@ const AuditResults = ({ result, onShare }) => {
     );
   }
 
+  // Transform result data to match template expectations
+  const audResult = {
+    monthlySavings: result.totalMonthlySavings || 0,
+    annualSavings: result.totalAnnualSavings || 0,
+    monthlySpend: result.totalMonthlySpend || 0,
+    savingsPercentage: result.totalMonthlySpend > 0 
+      ? (result.totalMonthlySavings / result.totalMonthlySpend) * 100 
+      : 0,
+  };
+  console.log(result);
+
+  const isHighSavings = result.isHighSavingsLead || false;
+
   const handleCaptureLead = async () => {
     if (!email) {
       toast.error('Please enter your email');
@@ -63,11 +76,10 @@ const AuditResults = ({ result, onShare }) => {
     try {
       await API.lead.captureLead({
         email,
-        company,
+        companyName: company,
         role,
-        auditResult: result,
+        auditId: result._id,
         teamSize: result.teamSize,
-        useCase: result.useCase,
       });
       
       toast.dismiss(loadingToast);
@@ -92,29 +104,16 @@ const AuditResults = ({ result, onShare }) => {
     const loadingToast = toast.loading('Creating shareable link...');
     
     try {
-      const shareData = await API.audit.createShareLink({
-        result: {
-          recommendations: result.recommendations,
-          summary: result.summary,
-          aiSummary: result.aiSummary,
-        },
-        metadata: {
-          teamSize: result.teamSize,
-          useCase: result.useCase,
-          timestamp: new Date().toISOString(),
-        },
-      });
-      
-      const url = `${window.location.origin}/share/${shareData.shareId}`;
+      const url = `${window.location.origin}/share/${result.publicShareId}`;
       setShareUrl(url);
       await navigator.clipboard.writeText(url);
       
       toast.dismiss(loadingToast);
       toast.success('Share link copied to clipboard!');
-      onShare?.(shareData.shareId);
+      onShare?.(result.publicShareId);
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error.message || 'Failed to generate share link');
+      toast.error('Failed to copy share link');
     } finally {
       setShared(false);
     }
@@ -169,16 +168,16 @@ const AuditResults = ({ result, onShare }) => {
               <SavingsIcon sx={{ fontSize: 80, mb: 2 }} />
             </motion.div>
             <Typography variant="h3" gutterBottom fontWeight={800}>
-              You could save up to ${result.summary?.monthlySavings || 0}/month
+              You could save up to ${audResult.monthlySavings}/month
             </Typography>
             <Typography variant="h5" gutterBottom>
-              ${result.summary?.annualSavings || 0}/year
+              ${audResult.annualSavings}/year
             </Typography>
             <Typography variant="body1" sx={{ mt: 2, opacity: 0.9 }}>
-              {(result.summary?.savingsPercentage || 0).toFixed(1)}% potential reduction in AI spend
+              {audResult.savingsPercentage.toFixed(1)}% potential reduction in AI spend
             </Typography>
             
-            {result.isHighSavings && (
+            {isHighSavings && (
               <Alert 
                 severity="warning" 
                 sx={{ 
@@ -250,10 +249,10 @@ const AuditResults = ({ result, onShare }) => {
                       </Box>
                       <Box sx={{ textAlign: 'right' }}>
                         <Typography variant="body2" color="text.secondary">
-                          Current: ${rec.currentMonthlySpend}/month
+                          Current: ${rec.monthlySpend || rec.currentMonthlySpend || 0}/month
                         </Typography>
                         <Typography variant="h6" color="success.main">
-                          Save: ${rec.savings}/month
+                          Save: ${rec.monthlySavings || rec.savings || 0}/month
                         </Typography>
                       </Box>
                     </Box>

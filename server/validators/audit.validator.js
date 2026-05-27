@@ -22,7 +22,9 @@ const toolSchema = Joi.object({
 
 const auditSchema = Joi.object({
   tools: Joi.array().items(toolSchema).min(1).required(),
-});
+  teamSize: Joi.number().min(1).optional(),
+  useCase: Joi.string().optional(),
+}).unknown(true);
 
 module.exports = {
   auditSchema,

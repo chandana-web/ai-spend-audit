@@ -1,5 +1,6 @@
+require("dotenv").config();
 const express = require("express");
-const dotenv = require("dotenv");
+// const dotenv = require("dotenv");
 const cors = require("cors");
 
 
@@ -9,7 +10,7 @@ const auditRoutes = require("./routes/audit.routes");
 const leadRoutes = require("./routes/lead.routes");
 const apiLimiter = require("./middleware/rateLimiter.middleware");
 
-dotenv.config();
+// dotenv.config();
 
 connectDB();
 

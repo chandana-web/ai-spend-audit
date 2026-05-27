@@ -7,125 +7,152 @@ const generateAudit = (tools = []) => {
   let totalMonthlySavings = 0;
 
   tools.forEach((tool) => {
-    const {
-      toolName,
-      currentPlan,
-      monthlySpend,
-      seats,
-      useCase,
-    } = tool;
+    const toolName =
+      tool.toolName
+        ?.toLowerCase()
+        .trim()
+        .replace(/\s+/g, "");
+
+    const currentPlan =
+      tool.currentPlan
+        ?.toLowerCase()
+        .trim();
+
+    const useCase =
+      tool.useCase
+        ?.toLowerCase()
+        .trim();
+
+    const monthlySpend =
+      Number(tool.monthlySpend);
+
+    const seats =
+      Number(tool.seats);
 
     totalMonthlySpend += monthlySpend;
 
     let recommendation = {
-      toolName,
-      currentPlan,
-      recommendedPlan: currentPlan,
+      toolName: tool.toolName,
+      currentPlan: tool.currentPlan,
+      recommendedPlan: tool.currentPlan,
+      monthlySpend,
       monthlySavings: 0,
       annualSavings: 0,
       reason: "Current plan appears cost-efficient.",
     };
 
     // =========================
-    // Cursor Logic
+    // Get Tool Config
     // =========================
-    if (toolName === "cursor") {
-      if (currentPlan === "business" && seats <= 5) {
-        const recommendedCost =
-          pricingData.cursor.plans.pro.monthlyPricePerSeat *
-          seats;
 
-        const savings = monthlySpend - recommendedCost;
+    const toolConfig = pricingData[toolName];
 
-        if (savings > 0) {
-          recommendation = {
-            toolName,
-            currentPlan,
-            recommendedPlan: "pro",
-            monthlySavings: savings,
-            annualSavings: savings * 12,
-            reason:
-              "Cursor Business may be unnecessary for smaller engineering teams.",
-          };
-        }
-      }
+    if (!toolConfig) {
+      recommendations.push(recommendation);
+      return;
     }
 
-    // =========================
-    // ChatGPT Logic
-    // =========================
-    if (toolName === "chatgpt") {
-      if (currentPlan === "team" && seats <= 2) {
-        const recommendedCost =
-          pricingData.chatgpt.plans.plus.monthlyPricePerSeat *
-          seats;
+    const currentPlanData =
+      toolConfig.plans[currentPlan];
 
-        const savings = monthlySpend - recommendedCost;
-
-        if (savings > 0) {
-          recommendation = {
-            toolName,
-            currentPlan,
-            recommendedPlan: "plus",
-            monthlySavings: savings,
-            annualSavings: savings * 12,
-            reason:
-              "ChatGPT Team features may not justify the additional cost for very small teams.",
-          };
-        }
-      }
+    if (!currentPlanData) {
+      recommendations.push(recommendation);
+      return;
     }
 
-    // =========================
-    // Claude Logic
-    // =========================
-    if (toolName === "claude") {
-      if (currentPlan === "team" && seats <= 3) {
-        const recommendedCost =
-          pricingData.claude.plans.pro.monthlyPricePerSeat *
-          seats;
-
-        const savings = monthlySpend - recommendedCost;
-
-        if (savings > 0) {
-          recommendation = {
-            toolName,
-            currentPlan,
-            recommendedPlan: "pro",
-            monthlySavings: savings,
-            annualSavings: savings * 12,
-            reason:
-              "Claude Team is often unnecessary unless collaboration features are actively used.",
-          };
-        }
-      }
-    }
-
-    // =========================
-    // API Overspend Logic
-    // =========================
+    // Skip API-style plans
     if (
-      toolName === "openaiApi" ||
-      toolName === "anthropicApi"
+      currentPlanData.monthlyPricePerSeat === null
     ) {
+      // API overspend logic
       if (monthlySpend > 500) {
-        const savings = Math.round(monthlySpend * 0.15);
+        const savings = Math.round(
+          monthlySpend * 0.15
+        );
 
         recommendation = {
-          toolName,
-          currentPlan,
-          recommendedPlan: "credits-based billing",
+          toolName: tool.toolName,
+          currentPlan: tool.currentPlan,
+          recommendedPlan:
+            "Credits-Based Billing",
+          monthlySpend,
           monthlySavings: savings,
           annualSavings: savings * 12,
           reason:
             "High API usage may qualify for discounted infrastructure credits through resellers like Credex.",
         };
       }
+
+      totalMonthlySavings +=
+        recommendation.monthlySavings;
+
+      recommendations.push(recommendation);
+
+      return;
     }
 
     // =========================
-    // Mixed Tool Optimization
+    // Find Cheaper Plans
     // =========================
+
+    const cheaperPlans = Object.entries(
+      toolConfig.plans
+    ).filter(([planKey, plan]) => {
+      return (
+        plan.monthlyPricePerSeat !== null &&
+        plan.monthlyPricePerSeat <
+          currentPlanData.monthlyPricePerSeat
+      );
+    });
+
+    // =========================
+    // Recommend Cheapest Plan
+    // =========================
+
+    if (cheaperPlans.length > 0) {
+      const cheapestPlan = cheaperPlans.sort(
+        (a, b) =>
+          a[1].monthlyPricePerSeat -
+          b[1].monthlyPricePerSeat
+      )[0];
+
+      const recommendedPlanData =
+        cheapestPlan[1];
+
+      const recommendedCost =
+        recommendedPlanData.monthlyPricePerSeat *
+        seats;
+
+      const savings =
+        monthlySpend - recommendedCost;
+
+      if (savings > 0) {
+        recommendation = {
+          toolName: tool.toolName,
+
+          currentPlan: tool.currentPlan,
+
+          recommendedPlan:
+            recommendedPlanData.name,
+
+          monthlySpend,
+
+          monthlySavings:
+            Math.round(savings),
+
+          annualSavings:
+            Math.round(savings * 12),
+
+          reason:
+            `${tool.toolName} ${tool.currentPlan} may be more expensive than necessary for your current usage.`,
+        };
+      }
+    }
+
+    // =========================
+    // Coding Recommendation
+    // =========================
+
     if (
       useCase === "coding" &&
       toolName === "chatgpt" &&
@@ -135,14 +162,17 @@ const generateAudit = (tools = []) => {
         " Engineering-focused tools like Cursor or Windsurf may provide better coding ROI.";
     }
 
-    totalMonthlySavings += recommendation.monthlySavings;
+    totalMonthlySavings +=
+      recommendation.monthlySavings;
 
     recommendations.push(recommendation);
   });
 
-  const totalAnnualSavings = totalMonthlySavings * 12;
+  const totalAnnualSavings =
+    totalMonthlySavings * 12;
 
-  const isHighSavingsLead = totalMonthlySavings >= 500;
+  const isHighSavingsLead =
+    totalMonthlySavings >= 500;
 
   return {
     recommendations,

@@ -40,6 +40,8 @@ const recommendationSchema = new mongoose.Schema(
 
     recommendedPlan: String,
 
+    monthlySpend: Number,
+
     monthlySavings: Number,
 
     annualSavings: Number,
@@ -68,6 +70,16 @@ const auditSchema = new mongoose.Schema(
     totalAnnualSavings: {
       type: Number,
       required: true,
+    },
+
+    teamSize: {
+      type: Number,
+      default: 1,
+    },
+
+    useCase: {
+      type: String,
+      default: "coding",
     },
 
     aiSummary: {

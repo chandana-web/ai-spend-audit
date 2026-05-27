@@ -3,10 +3,10 @@ import { Routes, Route } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import LandingPage from './pages/LandingPage'
 import AuditForm from './components/AuditForm'
-import AuditResults from './components/AuditResults'
+import ResultsPage from './pages/ResultsPage'
 import ShareView from './components/ShareView'
 import Navbar from './components/Navbar'
-import Footer from './components/Footer'
+// import Footer from './components/Footer'
 
 function App() {
   const [auditResult, setAuditResult] = useState(null)
@@ -27,11 +27,11 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/audit" element={<AuditForm onAuditComplete={setAuditResult} />} />
-          <Route path="/results" element={<AuditResults result={auditResult} onShare={setShareId} />} />
+          <Route path="/results" element={<ResultsPage />} />
           <Route path="/share/:id" element={<ShareView />} />
         </Routes>
       </AnimatePresence>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   )
 }

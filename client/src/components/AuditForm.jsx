@@ -38,7 +38,9 @@ const availableTools = [
   { name: 'Windsurf', plans: ['Free', 'Pro', 'Enterprise'] },
 ];
 
-const useCases = ['Coding', 'Writing', 'Data Analysis', 'Research', 'Mixed'];
+const useCases = ['coding', 'writing', 'data analysis', 'research', 'mixed'];
+
+
 
 const AuditForm = ({ onAuditComplete }) => {
   const navigate = useNavigate();
@@ -47,13 +49,36 @@ const AuditForm = ({ onAuditComplete }) => {
   const [pricingData, setPricingData] = useState(null);
   const [formData, setFormData] = useState({
     teamSize: 1,
-    useCase: 'Coding',
+    useCase: 'coding',
     tools: [],
   });
   const [selectedTool, setSelectedTool] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('');
   const [monthlySpend, setMonthlySpend] = useState('');
   const [seats, setSeats] = useState(1);
+
+  const getSeatOptions = (tool, plan) => {
+  const toolName = tool?.toLowerCase().replace(/\s+/g, '');
+  const planName = plan?.toLowerCase();
+
+  if (toolName === 'chatgpt' && planName === 'team') {
+    return [1, 2];
+  }
+
+  if (toolName === 'claude' && planName === 'team') {
+    return [1, 2, 3];
+  }
+
+  if (toolName === 'cursor' && planName === 'business') {
+    return [1, 2, 3, 4, 5];
+  }
+
+  if (toolName === 'githubcopilot' && planName === 'business') {
+    return [1, 2, 3];
+  }
+
+  return [1, 2, 3, 5, 10, 20];
+};
 
   // Load pricing data on mount
   useEffect(() => {
@@ -135,38 +160,27 @@ const AuditForm = ({ onAuditComplete }) => {
         teamSize: formData.teamSize,
         useCase: formData.useCase,
         tools: formData.tools.map(tool => ({
-          name: tool.name,
-          plan: tool.plan,
+          toolName: tool.name,
+          currentPlan: tool.plan,
           monthlySpend: tool.monthlySpend,
           seats: tool.seats,
+          useCase: formData.useCase,
         })),
       });
 
-      // Generate AI summary
-      let aiSummary = null;
-      try {
-        const summary = await API.ai.generateSummary({
-          auditResult,
-          useCase: formData.useCase,
-          teamSize: formData.teamSize,
-        });
-        aiSummary = summary.text;
-      } catch (error) {
-        console.error('AI summary generation failed:', error);
-        // Fallback summary - will be handled by backend
-      }
-
       const completeResult = {
-        ...auditResult,
-        aiSummary,
+        ...auditResult.data,
         teamSize: formData.teamSize,
         useCase: formData.useCase,
       };
 
-      onAuditComplete(completeResult);
+      if (onAuditComplete) {
+        onAuditComplete(completeResult);
+      }
+      
       toast.dismiss(loadingToast);
       toast.success('Audit complete! Check your savings below.');
-      navigate('/results');
+      navigate('/results', { state: { result: completeResult } });
     } catch (error) {
       toast.dismiss(loadingToast);
       toast.error(error.message || 'Failed to calculate audit. Please try again.');
@@ -329,13 +343,21 @@ const AuditForm = ({ onAuditComplete }) => {
                         />
                       </Grid>
                       <Grid item xs={12} md={2}>
-                        <TextField
-                          fullWidth
-                          label="Seats"
-                          type="number"
-                          value={seats}
-                          onChange={(e) => setSeats(parseInt(e.target.value) || 1)}
-                        />
+                        <FormControl fullWidth>
+  <InputLabel>Seats</InputLabel>
+
+  <Select
+    value={seats}
+    onChange={(e) => setSeats(Number(e.target.value))}
+    label="Seats"
+  >
+    {getSeatOptions(selectedTool, selectedPlan).map((seat) => (
+      <MenuItem key={seat} value={seat}>
+        {seat}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
                       </Grid>
                       <Grid item xs={12} md={1}>
                         <IconButton

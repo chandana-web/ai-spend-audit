@@ -1,17 +1,34 @@
 const crypto = require("crypto");
+const {
+  generateAISummary,
+} = require("../services/aiSummary.service");
 
 const Audit = require("../models/Audit");
 
 const asyncHandler = require("../utils/asyncHandler");
+
+const pricingData = require("../utils/pricingData");
 
 const {
   generateAudit,
 } = require("../services/auditEngine.service");
 
 const createAudit = asyncHandler(async (req, res) => {
-  const { tools } = req.body;
+  const { tools, teamSize, useCase } = req.body;
 
   const auditResult = generateAudit(tools);
+
+  const aiSummary =
+  await generateAISummary({
+    recommendations:
+      auditResult.recommendations,
+
+    totalMonthlySavings:
+      auditResult.totalMonthlySavings,
+
+    totalAnnualSavings:
+      auditResult.totalAnnualSavings,
+  });
 
   const publicShareId = crypto
     .randomBytes(8)
@@ -19,7 +36,8 @@ const createAudit = asyncHandler(async (req, res) => {
 
   const audit = await Audit.create({
     tools,
-
+    teamSize,
+    useCase,
     recommendations:
       auditResult.recommendations,
 
@@ -36,6 +54,7 @@ const createAudit = asyncHandler(async (req, res) => {
       auditResult.isHighSavingsLead,
 
     publicShareId,
+    aiSummary,
   });
 
   res.status(201).json({
@@ -70,7 +89,26 @@ const getPublicAudit = asyncHandler(
   }
 );
 
+const getPricingData = asyncHandler(
+  async (req, res) => {
+    // Transform pricing data to match frontend format
+    const transformedData = {};
+    
+    Object.entries(pricingData).forEach(([key, toolData]) => {
+      transformedData[toolData.displayName] = {
+        plans: Object.values(toolData.plans).map(plan => plan.name)
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: transformedData,
+    });
+  }
+);
+
 module.exports = {
   createAudit,
   getPublicAudit,
+  getPricingData,
 };
